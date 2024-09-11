@@ -1,10 +1,11 @@
-import Resolver from '@forge/resolver';
+import { SafeResolver } from "../lib/safe-resolver";
 
-const resolver = new Resolver();
+const resolver = new SafeResolver();
 
-resolver.define('getText', (req) => {
+resolver.define("getText", (req) => {
   console.log(req);
-  return 'Hello, world!';
+  req.payload.example;
+  return "Hello, world!";
 });
 
 export const handler = resolver.getDefinitions();
