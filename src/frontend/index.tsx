@@ -17,7 +17,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { ReleaseList } from "./components/release-list";
-import { ReleaseWorklogs } from "./components/release-worklogs";
+import { ReleaseIssues } from "./components/release-issues";
 
 type ProjectFromContext = {
   key: string;
@@ -71,7 +71,7 @@ const App = () => {
         <ReleaseList versions={projectData.versions} />
       </Stack>
       <Stack grow="fill">
-        <ReleaseWorklogs />
+        <ReleaseIssues />
       </Stack>
     </Inline>
   );

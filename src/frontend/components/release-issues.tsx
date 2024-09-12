@@ -18,7 +18,7 @@ import {
 } from "@forge/react";
 import { useReleaseStore } from "../../lib/release-store";
 
-export function ReleaseWorklogs() {
+export function ReleaseIssues() {
   const { selectedRelease } = useReleaseStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const openModal = () => setIsModalOpen(true);
