@@ -1,16 +1,12 @@
-interface ResponseObject {
-  [key: string]: any;
-}
-
-type Response = ResponseObject | string | void;
-
-type EnsureValidReturnType<T extends Response> = T;
+import { Version } from "../types/version";
 
 export type RegisteredFunctions = {
-  getText: {
-    returnType: EnsureValidReturnType<string>;
+  getProjectData: {
+    returnType: Promise<{
+      versions: Version[];
+    }>;
     payloadType: {
-      example: string;
+      projectId: string;
     };
   };
 };
