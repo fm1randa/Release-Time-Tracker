@@ -1,9 +1,12 @@
 import React from "react";
 import ForgeReconciler, {
   Box,
+  Button,
   Heading,
   Inline,
+  SectionMessage,
   Spinner,
+  Stack,
   Text,
   useProductContext,
 } from "@forge/react";
@@ -14,6 +17,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { ReleaseList } from "./components/release-list";
+import { ReleaseWorklogs } from "./components/release-worklogs";
 
 type ProjectFromContext = {
   key: string;
@@ -31,6 +35,7 @@ const App = () => {
     data: projectData,
     isPending: isProjectDataPending,
     isError: isProjectDataError,
+    refetch,
   } = useQuery({
     queryKey: ["project-data", projectContext?.id],
     queryFn: async ({ queryKey }) => {
@@ -42,7 +47,14 @@ const App = () => {
   });
 
   if (isProjectDataError) {
-    return <Text>There was an error fetching the data</Text>;
+    return (
+      <Stack space="space.100">
+        <SectionMessage appearance="error">
+          <Text>There was an error fetching the data</Text>
+        </SectionMessage>
+        <Button onClick={() => refetch()}>Retry</Button>
+      </Stack>
+    );
   }
 
   if (isProjectDataPending) {
@@ -53,12 +65,15 @@ const App = () => {
     );
   }
 
-  console.log(projectData);
-
   return (
-    <>
-      <ReleaseList versions={projectData.versions} />
-    </>
+    <Inline space="space.100">
+      <Stack>
+        <ReleaseList versions={projectData.versions} />
+      </Stack>
+      <Stack grow="fill">
+        <ReleaseWorklogs />
+      </Stack>
+    </Inline>
   );
 };
 
