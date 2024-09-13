@@ -1,7 +1,7 @@
 import { invoke } from "@forge/bridge";
-import { RegisteredFunction, RegisteredFunctions } from "./functions";
+import { FunctionKey, RegisteredFunctions } from "./functions";
 
-export function safeInvoke<T extends RegisteredFunction>(
+export function safeInvoke<T extends FunctionKey>(
   functionKey: T,
   payload: RegisteredFunctions[T]["payloadType"]
 ): Promise<Awaited<RegisteredFunctions[T]["returnType"]>> {

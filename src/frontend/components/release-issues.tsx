@@ -15,36 +15,60 @@ import {
   ModalBody,
   ModalFooter,
   Text,
+  useProductContext,
+  EmptyState,
 } from "@forge/react";
 import { useReleaseStore } from "../../lib/release-store";
+import { useQuery } from "@tanstack/react-query";
+import { safeInvoke } from "../../lib/safe-invoke";
+import { FunctionKey } from "../../lib/functions";
+import { ProjectFromContext } from "../../types/project";
+import { ErrorSectionMessage } from "./error-section-message";
 
 export function ReleaseIssues() {
+  const productContext = useProductContext();
+  const projectContext = productContext?.extension?.project as
+    | ProjectFromContext
+    | undefined;
   const { selectedRelease } = useReleaseStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  if (!selectedRelease) {
+  const {
+    data: issues,
+    isPending,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["release-issues", selectedRelease?.id, projectContext?.id],
+    queryFn: ({ queryKey }) => {
+      const [_key, _selectedReleaseId, projectId] = queryKey;
+
+      return safeInvoke(FunctionKey.GET_RELEASE_ISSUES, {
+        projectId: projectId!,
+        startDate: selectedRelease!.startDate,
+        releaseDate: selectedRelease!.releaseDate,
+      });
+    },
+    enabled: !!projectContext && !!selectedRelease,
+    retry: false,
+  });
+
+  if (isError) {
+    return (
+      <ErrorSectionMessage
+        text="Could not fetch release issues."
+        onRetry={refetch}
+      />
+    );
+  }
+
+  if (!selectedRelease || isPending) {
     return <Spinner size={"medium"} />;
   }
 
   const { name, startDate, releaseDate } = selectedRelease;
-
-  const issues = [
-    {
-      id: "1",
-      issueKey: "AP-1",
-      description: "Sint id commodo nostrud quis quis aliquip.",
-      workedTime: "8h",
-    },
-    {
-      id: "2",
-      issueKey: "AP-2",
-      description:
-        "Cupidatat veniam laborum magna sunt exercitation culpa fugiat aliqua adipisicing incididunt incididunt ad excepteur.",
-      workedTime: "1h",
-    },
-  ];
 
   return (
     <Box
@@ -79,28 +103,48 @@ export function ReleaseIssues() {
       >
         {startDate} - {releaseDate}
       </Box>
-      <Stack space="space.100">
-        {issues.map((issue) => (
-          <Button onClick={() => openModal()}>
-            <Inline space="space.100">
-              <Stack grow="hug">{issue.issueKey}</Stack>
+      {issues ? (
+        <Stack space="space.100">
+          {issues.map((issue) => {
+            const totalTimeSpentOnIssue: number = issue.worklogs.reduce(
+              (acc, worklog) => {
+                return acc + worklog.timeSpentSeconds;
+              },
+              0
+            );
 
-              <Box xcss={{ height: "100%", paddingTop: "space.050" }}>
-                <Icon glyph="chevron-right" label="Divider" size="medium" />
-              </Box>
+            return (
+              <Button onClick={() => openModal()}>
+                <Inline space="space.100">
+                  <Stack grow="hug">{issue.issueKey}</Stack>
 
-              <Stack grow="hug">{issue.description}</Stack>
-              <Stack grow="fill">
-                <Inline alignInline="end" alignBlock="center">
-                  <Box xcss={{ height: "100%" }}>
-                    <Badge>{issue.workedTime}</Badge>
+                  <Box xcss={{ height: "100%", paddingTop: "space.050" }}>
+                    <Icon glyph="chevron-right" label="Divider" size="medium" />
                   </Box>
+
+                  <Stack grow="hug">{issue.summary}</Stack>
+                  <Stack grow="fill">
+                    <Inline alignInline="end" alignBlock="center">
+                      <Box xcss={{ height: "100%" }}>
+                        <Badge>{totalTimeSpentOnIssue}</Badge>
+                      </Box>
+                    </Inline>
+                  </Stack>
                 </Inline>
-              </Stack>
-            </Inline>
-          </Button>
-        ))}
-      </Stack>
+              </Button>
+            );
+          })}
+        </Stack>
+      ) : (
+        <EmptyState
+          header={"No issues found for this release"}
+          primaryAction={
+            <Button appearance="primary" onClick={refetch}>
+              Refresh
+            </Button>
+          }
+        />
+      )}
       <ModalTransition>
         {isModalOpen && (
           <Modal onClose={closeModal}>

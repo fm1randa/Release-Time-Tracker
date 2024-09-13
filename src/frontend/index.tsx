@@ -18,12 +18,9 @@ import {
 } from "@tanstack/react-query";
 import { ReleaseList } from "./components/release-list";
 import { ReleaseIssues } from "./components/release-issues";
-
-type ProjectFromContext = {
-  key: string;
-  type: string;
-  id: string;
-};
+import { FunctionKey } from "../lib/functions";
+import { ProjectFromContext } from "../types/project";
+import { ErrorSectionMessage } from "./components/error-section-message";
 
 const App = () => {
   const productContext = useProductContext();
@@ -40,7 +37,9 @@ const App = () => {
     queryKey: ["project-data", projectContext?.id],
     queryFn: async ({ queryKey }) => {
       const [_key, projectId] = queryKey;
-      return safeInvoke("getProjectData", { projectId: projectId! });
+      return safeInvoke(FunctionKey.GET_PROJECT_DATA, {
+        projectId: projectId!,
+      });
     },
     enabled: !!projectContext,
     retry: false,
@@ -48,12 +47,10 @@ const App = () => {
 
   if (isProjectDataError) {
     return (
-      <Stack space="space.100">
-        <SectionMessage appearance="error">
-          <Text>There was an error fetching the data</Text>
-        </SectionMessage>
-        <Button onClick={() => refetch()}>Retry</Button>
-      </Stack>
+      <ErrorSectionMessage
+        text="Could not fetch project data."
+        onRetry={refetch}
+      />
     );
   }
 
