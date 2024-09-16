@@ -14,7 +14,6 @@ import {
   ModalTitle,
   ModalBody,
   ModalFooter,
-  Text,
   useProductContext,
   EmptyState,
 } from "@forge/react";
@@ -24,6 +23,30 @@ import { safeInvoke } from "../../lib/safe-invoke";
 import { FunctionKey } from "../../lib/functions";
 import { ProjectFromContext } from "../../types/project";
 import { ErrorSectionMessage } from "./error-section-message";
+import { Issue } from "../../types/issue";
+
+function formatSeconds(seconds: number): string {
+  if (seconds >= 3600) {
+    const hours = Math.round(seconds / 3600);
+    return `${hours}h`;
+  } else if (seconds >= 60) {
+    const minutes = Math.round(seconds / 60);
+    return `${minutes}m`;
+  } else {
+    return `${seconds}s`;
+  }
+}
+
+function getTotalWorkedSeconds(issues: Issue[]): number {
+  return issues.reduce((acc, issue) => {
+    return (
+      acc +
+      issue.worklogs.reduce((acc, worklog) => {
+        return acc + worklog.timeSpentSeconds;
+      }, 0)
+    );
+  }, 0);
+}
 
 export function ReleaseIssues() {
   const productContext = useProductContext();
@@ -91,7 +114,9 @@ export function ReleaseIssues() {
               paddingLeft: "space.150",
             }}
           >
-            <Badge appearance="primary">9h</Badge>
+            <Badge appearance="primary">
+              {formatSeconds(getTotalWorkedSeconds(issues))}
+            </Badge>
           </Box>
         </Inline>
       </Heading>
@@ -126,7 +151,7 @@ export function ReleaseIssues() {
                   <Stack grow="fill">
                     <Inline alignInline="end" alignBlock="center">
                       <Box xcss={{ height: "100%" }}>
-                        <Badge>{totalTimeSpentOnIssue}</Badge>
+                        <Badge>{formatSeconds(totalTimeSpentOnIssue)}</Badge>
                       </Box>
                     </Inline>
                   </Stack>
