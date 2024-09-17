@@ -35,8 +35,6 @@ resolver.define(FunctionKey.GET_RELEASE_ISSUES, async (req) => {
     .requestJira(route`/rest/api/3/search?fields=summary,worklog&${params}`)
     .then(async (response) => (await response.json()) as IssueResponse);
 
-  console.log(issuesResponse.issues);
-
   return issuesResponse.issues.map((issue) => ({
     id: issue.id,
     issueKey: issue.key,
