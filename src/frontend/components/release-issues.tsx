@@ -24,18 +24,9 @@ import { FunctionKey } from "../../lib/functions";
 import { ProjectFromContext } from "../../types/project";
 import { ErrorSectionMessage } from "./error-section-message";
 import { Issue } from "../../types/issue";
-
-function formatSeconds(seconds: number): string {
-  if (seconds >= 3600) {
-    const hours = Math.round(seconds / 3600);
-    return `${hours}h`;
-  } else if (seconds >= 60) {
-    const minutes = Math.round(seconds / 60);
-    return `${minutes}m`;
-  } else {
-    return `${seconds}s`;
-  }
-}
+import { useWorklogsModalStore, WorklogsModal } from "./worklogs-modal";
+import { useIssueStore } from "../../lib/issue-store";
+import { formatSeconds } from "../../lib/format-seconds";
 
 function getTotalWorkedSeconds(issues: Issue[]): number {
   return issues.reduce((acc, issue) => {
@@ -54,9 +45,8 @@ export function ReleaseIssues() {
     | ProjectFromContext
     | undefined;
   const { selectedRelease } = useReleaseStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const { setSelectedIssue } = useIssueStore();
+  const { openModal } = useWorklogsModalStore();
 
   const {
     data: issues,
@@ -139,7 +129,12 @@ export function ReleaseIssues() {
             );
 
             return (
-              <Button onClick={() => openModal()}>
+              <Button
+                onClick={() => {
+                  setSelectedIssue(issue);
+                  openModal();
+                }}
+              >
                 <Inline space="space.100">
                   <Stack grow="hug">{issue.issueKey}</Stack>
 
@@ -170,33 +165,7 @@ export function ReleaseIssues() {
           }
         />
       )}
-      <ModalTransition>
-        {isModalOpen && (
-          <Modal onClose={closeModal}>
-            <ModalHeader>
-              <ModalTitle>Duplicate this page</ModalTitle>
-            </ModalHeader>
-            <ModalBody>
-              Voluptate laboris reprehenderit incididunt duis amet cillum fugiat
-              incididunt aliquip occaecat. Ad dolor excepteur sint est voluptate
-              aliquip occaecat veniam magna commodo mollit incididunt incididunt
-              anim. Ex proident eiusmod cillum excepteur. Pariatur do
-              exercitation quis sunt ex esse magna fugiat ut. Labore sint Lorem
-              incididunt qui tempor sit ad reprehenderit amet magna. Aute
-              adipisicing ipsum dolore dolore proident voluptate ut tempor
-              excepteur est.
-            </ModalBody>
-            <ModalFooter>
-              <Button appearance="subtle" onClick={closeModal}>
-                Cancel
-              </Button>
-              <Button appearance="primary" onClick={closeModal}>
-                Duplicate
-              </Button>
-            </ModalFooter>
-          </Modal>
-        )}
-      </ModalTransition>
+      <WorklogsModal />
     </Box>
   );
 }
